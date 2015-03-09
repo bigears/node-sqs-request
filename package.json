@@ -1,0 +1,17 @@
+{
+  "name": "sqs-request",
+  "version": "1.0.3",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1.4",
+    "bigears-sqs-publisher": "git://github.com/bigears/node-bigears-sqs-publisher",
+    "bluebird": "^2.4.3",
+    "debug": "^2.1.0"
+  }
+}
