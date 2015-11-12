@@ -14,33 +14,29 @@
 * The request must have a uuid.
 */
 
-var fs              = require('fs')
-  , Promise         = require('bluebird')
-  , AWS             = require('aws-sdk')
-  , regionBucket    = require('region-bucket')
-  , BigearsSqsQueue = require('bigears-sqs-publisher')
-  , debug           = require('debug')('sqs-request')
-  ;
+var fs           = require('fs');
+var Promise      = require('bluebird');
+var AWS          = require('aws-sdk');
+var regionBucket = require('region-bucket');
+var Publisher    = require('bigears-sqs-publisher');
+var debug        = require('debug')('sqs-request');
 
 /*
 * Find the bucket. If the bucket is found then restablish s3 connection to the
 * correct region. Otherwise create the bucket.
 */
-function createBucket(region, bucket)
-{
+function createBucket(region, bucket) {
   return regionBucket(region, bucket, {
     create: true,
     ACL: 'private'
   });
 }
 
-module.exports = function(params)
-{
+module.exports = function(params) {
   var bucket = createBucket(params.region, params.bucket);
-  var bigearsSqsQueue = new BigearsSqsQueue(params.region, params.queue);
+  var publisher = new Publish(params.region, params.queue);
 
-  return function(req, res)
-  {
+  return function(req, res) {
     debug('processing request');
 
     function awsKey(index, name) {
@@ -57,16 +53,16 @@ module.exports = function(params)
           'name': key,
           'key': awsKey(index, key)
         };
-      })
+      }),
+      Bucket: params.bucket,
+      Region: params.region
     };
 
     var uploads = bucket.then(
-      function(bucket) 
-      {
+      function(bucket) {
         // Find every file and upload it
         return Promise.all(Object.keys(req.files).map(
-          function(name, index) 
-          {
+          function(name, index) {
             var file     = req.files[name]
             , fileStream = fs.createReadStream(file.path)
             , key        = awsKey(index, name)
@@ -84,9 +80,8 @@ module.exports = function(params)
     )
     .tap(debug);
 
-    return uploads.then(function(keys)
-    {
-      return bigearsSqsQueue.publish(payload);
+    return uploads.then(function(keys) {
+      return publisher.publish(payload);
     })
     .thenReturn(payload);
   };
