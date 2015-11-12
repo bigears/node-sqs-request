@@ -34,7 +34,7 @@ function createBucket(region, bucket) {
 
 module.exports = function(params) {
   var bucket = createBucket(params.region, params.bucket);
-  var publisher = new Publish(params.region, params.queue);
+  var publisher = new Publisher(params.region, params.queue);
 
   return function(req, res) {
     debug('processing request');
