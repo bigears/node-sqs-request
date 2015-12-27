@@ -11,6 +11,7 @@
   "dependencies": {
     "aws-sdk": "^2.1.4",
     "bigears-sqs-publisher": "git://github.com/bigears/node-bigears-sqs-publisher",
+    "region-bucket": "git://github.com/bigears/node-region-bucket",
     "bluebird": "^2.4.3",
     "debug": "^2.1.0"
   }

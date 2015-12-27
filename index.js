@@ -36,7 +36,7 @@ module.exports = function(params) {
   var bucket = createBucket(params.region, params.bucket);
   var publisher = new Publisher(params.region, params.queue);
 
-  return function(req, res) {
+  return function(req, res, files) {
     debug('processing request with body', req.body);
 
     function awsKey(index, name) {
@@ -47,11 +47,11 @@ module.exports = function(params) {
     // s3), the message id, the message body and a list of attached files.
     var payload = {
       body: req.body,
-      files: Object.keys(req.files).map(function(key, index) {
+      files: files.map(function(file, index) {
         return {
           'index': index,
-          'name': key,
-          'key': awsKey(index, key)
+          'name': file.fieldname,
+          'key': awsKey(index, file.fieldname)
         };
       }),
       Bucket: params.bucket,
@@ -61,12 +61,10 @@ module.exports = function(params) {
     var uploads = bucket.then(
       function(bucket) {
         // Find every file and upload it
-        return Promise.all(Object.keys(req.files).map(
-          function(name, index) {
-            var file     = req.files[name]
-            , fileStream = fs.createReadStream(file.path)
-            , key        = awsKey(index, name)
-            ;
+        return Promise.all(files.map(
+          function(file, index) {
+            var fileStream = fs.createReadStream(file.path);
+            var key = awsKey(index, file.fieldname);
 
             return bucket.putObjectAsync({
               Body: fileStream,
