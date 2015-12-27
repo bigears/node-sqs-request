@@ -37,7 +37,7 @@ module.exports = function(params) {
   var publisher = new Publisher(params.region, params.queue);
 
   return function(req, res) {
-    debug('processing request');
+    debug('processing request with body', req.body);
 
     function awsKey(index, name) {
       return req.uuid + '/' + index + '_' + name;
