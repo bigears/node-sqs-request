@@ -58,6 +58,8 @@ module.exports = function(params) {
       Region: params.region
     };
 
+    debug('processing request with', files.length, 'files attached');
+
     var uploads = bucket.then(
       function(bucket) {
         // Find every file and upload it
@@ -66,21 +68,31 @@ module.exports = function(params) {
             var fileStream = fs.createReadStream(file.path);
             var key = awsKey(index, file.fieldname);
 
+            debug('uploading file', key);
+
             return bucket.putObjectAsync({
               Body: fileStream,
               Key:  key,
               ContentType: file.mimetype
             })
-            .thenReturn(key);
+            .then(function(res) {
+              debug('uploaded file', key);
+              return res;
+            })
+            .then(function() {
+              return key;
+            });
           }
         ));
       }
-    )
-    .tap(debug);
+    );
 
     return uploads.then(function(keys) {
+      debug('uploaded', keys.length, 'files');
       return publisher.publish(payload);
     })
-    .thenReturn(payload);
+    .then(function() {
+      return payload;
+    });
   };
 };
